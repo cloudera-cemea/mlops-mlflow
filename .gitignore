@@ -1,0 +1,46 @@
+# OSX
+.DS_Store
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+*.egg-info/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Logs and local database files
+logs/
+*.log
+*.sqlite3
+*.db
+
+# Cache and temporary files
+.cache/
+*.tmp
+*.swp
+*.swo
+
+# Python package files
+dist/
+build/
+*.egg
+
+# Config and environment files
+.env
+.envrc
+.vscode/
+.idea/
+*.bak
+
+# MLflow Artifacts (if using MLflow)
+mlruns/
+
+# Docker and deployment
+*.dockerfile
+__pycache__/
