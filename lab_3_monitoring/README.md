@@ -13,9 +13,9 @@ Labs 1 and 2 have already covered:
 This lab chains together the previous steps and adds **Deployment** and **Monitoring** in a full pipeline.
 
 Once a model is in production, continuous monitoring is essential to ensure:
-✅ Performance remains high (accuracy, prediction quality).
-✅ Infrastructure scales effectively (low latency, stable request handling).
-✅ Model drift and data shifts are detected early to prevent degradation.
+- ✅ Performance remains high (accuracy, prediction quality).
+- ✅ Infrastructure scales effectively (low latency, stable request handling).
+- ✅ Model drift and data shifts are detected early to prevent degradation.
 
 ## Overview
 

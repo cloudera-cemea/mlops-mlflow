@@ -47,7 +47,7 @@ Experimemt Tracking with MLflow on Cloudera Machine Learning provides:
 - **MLflow UI**: For visualizing and comparing experiments.
 - **Autologging**: Automatically logs parameters and metrics from libraries like scikit-learn and PyTorch.
 
-![MLflow Tracking Overview](https://mlflow.org/docs/latest/_images/tracking-basics.png)
+![MLflow Tracking Overview](https://mlflow.org/docs/latest/assets/images/tracking-basics-dd24b77b7d7b32c5829e257316701801.png)
 
 ## Bad Example: No Experiment Tracking in Basic Model Training
 
@@ -149,7 +149,8 @@ with mlflow.start_run():
 
 It is a best practice to use experiment names to organize runs. Use `mlflow.set_experiment("experiment_name")` to specify experiments before running tracking code.
 
-⚠️ Note: If no experiment name is given, all data will be logged to the "Default" experiment.
+> [!Warning]
+> If no experiment name is given, all data will be logged to the "Default" experiment.
 
 ### Best Practice: Autologging vs. Manual Logging
 
@@ -161,7 +162,7 @@ mlflow.sklearn.autolog()
 
 MLflow will automatically log parameters, metrics, and models without explicit calls to `mlflow.log_*` functions.
 
-![MLflow Autologging](https://mlflow.org/docs/latest/_images/autologging-intro.png)
+![MLflow Autologging](https://mlflow.org/docs/latest/assets/images/autologging-intro-8e1315dec6527d392563f06b36abeb56.png)
 
 **Autologging Pros**:
 

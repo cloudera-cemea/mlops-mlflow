@@ -197,9 +197,9 @@ Good Practice: Cross-Project Workflow
 2. Deploy in PROD: In the “PROD” project, retrieve the registered model via the Cloudera APIs and deploy it, ensuring no manual file transfers or inconsistencies.
 
 Why This is Beneficial:
-✅ Environment Isolation: Prevents untested models from being deployed in production.
-✅ Reproducibility & Governance: Models deployed in PROD are always retrieved from the registry, maintaining a controlled and traceable pipeline.
-✅ Automation & CI/CD Compatibility: Enables API-based deployments, reducing human error and ensuring consistency between environments.
+- ✅ Environment Isolation: Prevents untested models from being deployed in production.
+- ✅ Reproducibility & Governance: Models deployed in PROD are always retrieved from the registry, maintaining a controlled and traceable pipeline.
+- ✅ Automation & CI/CD Compatibility: Enables API-based deployments, reducing human error and ensuring consistency between environments.
 
 ## Summary
 
