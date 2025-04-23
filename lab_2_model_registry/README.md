@@ -1,10 +1,10 @@
-# Lab 2: Model Registry
+# Lab 2: Model Registry and Deployments
 
 ## Introduction
 
 In Lab 1 you learned how to track experiments with MLflow on Cloudera Machine Learning (CML). This lab will take you a step further: once you have multiple models and runs, how do you keep them organized, versioned, and easy to discover? Cloudera’s **Model Registry** solves this problem by acting as a centralized repository where you can register and track your models.
 
-This lab will teach you how to register models, store them in the Model Registry, and manage different versions systematically—without overwriting or losing history.
+This lab will teach you how to register models, store them in the Model Registry, and manage different versions systematically — and deploy models as endpoints directly from the registry.
 
 ## Overview
 

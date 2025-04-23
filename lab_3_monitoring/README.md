@@ -10,11 +10,11 @@ Labs 1 and 2 have already covered:
 - Experiment Tracking: Using MLflow to log model parameters, metrics, and artifacts.
 - Model Registry: Versioning and managing models for reproducibility.
 
-This lab chains together the previous steps and adds **Deployment** and **Monitoring** in a full pipeline.
+This lab chains together the previous steps and adds **Deployment** and **Monitoring** to demonstrate components of a full MLOps pipeline.
 
 Once a model is in production, continuous monitoring is essential to ensure:
-- ✅ Performance remains high (accuracy, prediction quality).
 - ✅ Infrastructure scales effectively (low latency, stable request handling).
+- ✅ Performance remains high (accuracy, prediction quality).
 - ✅ Model drift and data shifts are detected early to prevent degradation.
 
 ## Overview
@@ -23,10 +23,10 @@ Once a model is in production, continuous monitoring is essential to ensure:
   - [Introduction](#introduction)
   - [Overview](#overview)
   - [Model Deployment as REST endpoint from Model Registry](#model-deployment-as-rest-endpoint-from-model-registry)
-  - [Bad Example: Lack of Visibility into Model Behavior in Production](#bad-example-lack-of-visibility-into-model-behavior-in-production)
-  - [Good Example: Technical Monitoring](#good-example-technical-monitoring)
-  - [Good Example: Prediction Monitoring with Model Metrics](#good-example-prediction-monitoring-with-model-metrics)
-  - [CI/CD with Cloudera Machine Learning APIs and GitLab](#cicd-with-cloudera-machine-learning-apis-and-gitlab)
+  - [Problem: Lack of Visibility into Model Behavior in Production](#problem-lack-of-visibility-into-model-behavior-in-production)
+  - [Solution #1: Technical Monitoring](#solution-1-technical-monitoring)
+  - [Solution #2: Prediction Monitoring with Model Metrics](#solution-2-prediction-monitoring-with-model-metrics)
+  - [Further Reading: CI/CD with Cloudera Machine Learning APIs and GitLab](#further-reading-cicd-with-cloudera-machine-learning-apis-and-gitlab)
 
 ## Model Deployment as REST endpoint from Model Registry
 
@@ -63,9 +63,11 @@ CreateModelRequest = {
 }
 
 model_api_response = cml_client.create_model(CreateModelRequest, os.getenv("CDSW_PROJECT_ID"))
+
+...
 ```
 
-## Bad Example: Lack of Visibility into Model Behavior in Production
+## Problem: Lack of Visibility into Model Behavior in Production
 
 Once a model is deployed, not knowing how it is performing in real-world conditions can lead to performance degradation, undetected failures, and poor decision-making. Without proper monitoring, issues may go unnoticed until they start impacting users or business processes.
 
@@ -74,9 +76,9 @@ Key Challenges
 - Data & Concept Drift: Is the input data distribution changing compared to what the model was trained on?
 - Technical Scalability: Can the model handle increasing requests without latency or failures?
 
-## Good Example: Technical Monitoring
+## Solution #1: Technical Monitoring
 
-To simulate load, the Notebook [ops_simulation.ipynb](./monitoring/ops_simulation.ipynb) creates synthetic data and API calls to the model endpoint.
+To simulate load, the Notebook [1_ops_simulation.ipynb](./monitoring/1_ops_simulation.ipynb) creates synthetic data and API calls to the model endpoint.
 
 ```python
 for sample in synthetic_sample:
@@ -99,11 +101,11 @@ Key Features:
 
 Documentation: https://docs.cloudera.com/machine-learning/1.5.3/models/topics/ml-model-tech-metrics.html
 
-## Good Example: Prediction Monitoring with Model Metrics
+## Solution #2: Prediction Monitoring with Model Metrics
 
 To answer questions such as data & concept drift and to add custom business logic to monitoring workflows, Model Metrics offer a customizable approach to monitor both REST API endpoints and batch inference processes. By integrating custom code, users can track specific performance indicators tailored to their models.
 
-The notebook [model_metrics.ipynb](./monitoring/model_metrics.ipynb) shows a full example how to make use of Model Metrics to track predictions along with inputs and a delayed ground truth. The notebook makes use of the decorated predict function defined in the [predict_with_metrics.py](./monitoring/predict_with_metrics.py) module.
+The notebook [2_model_metrics.ipynb](./monitoring/2_model_metrics.ipynb) shows a full example how to make use of Model Metrics to track predictions along with inputs and a delayed ground truth. The notebook makes use of the decorated predict function defined in the [2_predict_with_metrics.py](./monitoring/2_predict_with_metrics.py) module.
 
 ```python
 import cml.metrics_v1 as metrics
@@ -146,13 +148,4 @@ Documentation: https://docs.cloudera.com/machine-learning/1.5.3/model-metrics/to
 
 By leveraging GitLab’s CI/CD pipelines in conjunction with Cloudera APIs, teams can automate the processes of model training, testing, deployment, and monitoring. This integration ensures that models are consistently updated and deployed without manual intervention, promoting a robust MLOps culture.
 
-Example GitLab Pipeline Utilizing Cloudera APIs: https://gitlab.com/vish3004/end-to-end-devops-demo
-
-In the End-to-End DevOps Demo, a comprehensive CI/CD pipeline is implemented to automate the machine learning lifecycle using Cloudera APIs. The pipeline is defined in the .gitlab-ci.yml file and encompasses the following stages:
-1. Data Preparation: Automates the extraction, transformation, and loading (ETL) of data required for model training.
-2. Model Training: Utilizes CML’s API to initiate model training within a specified project environment.
-3. Model Evaluation: Assesses the trained model’s performance against validation datasets to ensure it meets predefined metrics.
-4. Model Registration: Upon successful evaluation, the model is registered into the CML Model Registry via API calls, facilitating version control and governance.
-5. Model Deployment: Deploys the registered model as a REST API endpoint using CML’s deployment capabilities, making it accessible for real-time predictions.
-
-This pipeline exemplifies how GitLab CI/CD, integrated with Cloudera Machine Learning APIs, can streamline and automate the end-to-end machine learning workflow, from data preparation to model deployment.
+Example GitLab pipeline utilizing Cloudera APIs: https://gitlab.com/vish3004/end-to-end-devops-demo
