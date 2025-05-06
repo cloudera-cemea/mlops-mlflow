@@ -10,7 +10,8 @@ By the end of this workshop, participants will be able to:
 - ✅ Manage model versions and automate workflows using the Model Registry.
 - ✅ Deploy models as endpoints and implement monitoring best practices.
 
-![Machine Learning Engineering according to ml-ops.org](./images/mlops_overview.png)
+![mlops overview](./images/mlops_overview.png)
+Source: [ml-ops.org](https://ml-ops.org)
 
 ## Workshop Structure
 
