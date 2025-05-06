@@ -2,14 +2,15 @@
 
 ## Introduction
 
-This repository provides a hands-on MLflow workshop tailored for Cloudera Machine Learning (CML). The workshop is designed for data scientists looking to integrate MLflow into their MLOps workflows, covering key aspects such as experiment tracking, model versioning, deployment, and monitoring.
+This repository provides a hands-on MLflow workshop tailored for Cloudera Machine Learning. The workshop is designed for data scientists looking to integrate MLflow into their MLOps workflows, covering key aspects such as experiment tracking, model versioning, deployment, and monitoring.
 
 By the end of this workshop, participants will be able to:
+
 - ✅ Track machine learning experiments with MLflow.
 - ✅ Manage model versions and automate workflows using the Model Registry.
 - ✅ Deploy models as endpoints and implement monitoring best practices.
 
-![Machine Learning Engineering according to ml-ops.org](./images/mle.png)
+![Machine Learning Engineering according to ml-ops.org](./images/mlops_overview.png)
 
 ## Workshop Structure
 
@@ -21,7 +22,7 @@ The workshop is divided into three labs:
 
 Each directory contains code examples, notebooks and optional exercises for diving deeper into the individual topics.
 
-```
+```text
 .
 ├── README.md
 ├── lab_1_experiment_tracking
@@ -34,11 +35,11 @@ Each directory contains code examples, notebooks and optional exercises for divi
 
 | Component | Specification |
 |-----------|---------------|
-| Platform | Cloudera Machine Learning with running Workspace and Model Registry |
+| Platform | Cloudera Machine Learning with running Workbench and Model Registry |
 | Python Dependencies | See `requirements.txt` |
 | MLflow | `2.19.0` (Provided by Cloudera Machine Learning Runtime) |
-| Cloudera Data Services | >= `1.5.3` |
-| Cloudera Machine Learning Runtime | `ml-runtime-jupyterlab-python3.11-standard:2024.10.1-b12` |
+| Cloudera Machine Learning Workbench | >= `2.0.50-b52` |
+| Cloudera Machine Learning Runtime | `ml-runtime-pbj-jupyterlab-python3.11-standard:2025.01.3-b8` |
 | Public Internet Access | Not required* (PyTorch examples in Lab 1 require public internet access for loading example data. Please contact your platform team in case of issues.) |
 
 ## Getting Started
@@ -47,7 +48,7 @@ Each lab is self-contained with step-by-step instructions.
 Follow the labs in order to get started with MLOps using MLflow and Cloudera Machine Learning. 🚀
 
 1. Creata a new Cloudera Machine Learning Project based on this GitHub repository
-2. Enable the Project Runtime `ml-runtime-jupyterlab-python3.11-standard:2024.10.1-b12`
+2. Enable the Project Runtime `ml-runtime-pbj-jupyterlab-python3.11-standard:2025.01.3-b8`
 3. Launch a session and install the dependencies `pip install -r requirements.txt`
 
 > [!Note]
@@ -55,4 +56,4 @@ Follow the labs in order to get started with MLOps using MLflow and Cloudera Mac
 
 ## Contact
 
-- Cloudera Solutions Engineering : Maximilian Engelhardt mengelhardt@cloudera.com
+- Cloudera Solutions Engineering : Maximilian Engelhardt <mengelhardt@cloudera.com>

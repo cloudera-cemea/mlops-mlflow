@@ -2,150 +2,156 @@
 
 ## Introduction
 
-A complete machine learning lifecycle follows a structured pipeline:
+Labs 1 and 2 have already covered Experiment Tracking, Model Registry and Model Deployments. This lab adds the critical last step in the MLOps pipeline: **Monitoring**.
 
     experiments → model registry → deployment → monitoring
 
-Labs 1 and 2 have already covered:
-- Experiment Tracking: Using MLflow to log model parameters, metrics, and artifacts.
-- Model Registry: Versioning and managing models for reproducibility.
-
-This lab chains together the previous steps and adds **Deployment** and **Monitoring** to demonstrate components of a full MLOps pipeline.
-
-Once a model is in production, continuous monitoring is essential to ensure:
-- ✅ Infrastructure scales effectively (low latency, stable request handling).
-- ✅ Performance remains high (accuracy, prediction quality).
-- ✅ Model drift and data shifts are detected early to prevent degradation.
+> [!Tip] Once a model is in production, continuous monitoring is crucial to ensure:
+>
+> - ✅ Infrastructure scales effectively (low latency, stable request handling).
+> - ✅ Performance remains high (accuracy, prediction quality).
+> - ✅ Model drift and data shifts are detected early to prevent degradation.
 
 ## Overview
 
 - [Lab 3: Deployment and Monitoring Workflows](#lab-3-deployment-and-monitoring-workflows)
   - [Introduction](#introduction)
   - [Overview](#overview)
-  - [Model Deployment as REST endpoint from Model Registry](#model-deployment-as-rest-endpoint-from-model-registry)
-  - [Problem: Lack of Visibility into Model Behavior in Production](#problem-lack-of-visibility-into-model-behavior-in-production)
-  - [Solution #1: Technical Monitoring](#solution-1-technical-monitoring)
-  - [Solution #2: Prediction Monitoring with Model Metrics](#solution-2-prediction-monitoring-with-model-metrics)
-  - [Further Reading: CI/CD with Cloudera Machine Learning APIs and GitLab](#further-reading-cicd-with-cloudera-machine-learning-apis-and-gitlab)
+  - [Why Monitoring?](#why-monitoring)
+  - [Best Practice #1: Technical Monitoring](#best-practice-1-technical-monitoring)
+  - [Best Practice #2: Prediction Monitoring with Model Metrics](#best-practice-2-prediction-monitoring-with-model-metrics)
+    - [Setup Metrics Store and Prediction Function](#setup-metrics-store-and-prediction-function)
+    - [Monitor Drift and Prediction Quality with Delayed Metrics](#monitor-drift-and-prediction-quality-with-delayed-metrics)
+  - [Summary](#summary)
 
-## Model Deployment as REST endpoint from Model Registry
+## Why Monitoring?
 
-In Cloudera Machine Learning, Model Deployments allow you to serve models as scalable REST API endpoints directly from your Projects. Models can also be deployed direclty from registered models, ensuring traceability and version control. Cloudera Machine Learning automatically handles containerization, scaling, and monitoring, making it easy to integrate models into real-time applications and business workflows.
+Monitoring is essential for maintaining model performance and reliability in production. Without it, models can degrade silently, leading to poor predictions. Key challenges include tracking accuracy, detecting drift, and ensuring scalability. Effective monitoring provides visibility into model behavior and enables proactive maintenance.
 
-    experiments → model registry → deployment
+## Best Practice #1: Technical Monitoring
 
-Expanding on the pipeline example from [Lab #2](../lab_2_model_registry/README.md#good-example-2-automation-with-cloudera-machine-learning-jobs-and-pipelines), we can add a third step to the pipeline to deploy the registered model as an endpoint. The script [`deploy_from_registry.py`](./deployment/deploy_from_registry.py) retrieves the latest version of the registered model and deploys it:
-
-1. First the model metadata is retrieved from the Model Registry:
-
-```python
-# Retrieve model id by model name
-search_filter = {"model_name": MODEL_NAME}
-response_dict = cml_client.list_registered_models(search_filter=json.dumps(search_filter)).to_dict()
-model_id = response_dict["models"][0]["model_id"]
-print(f"Model ID: {model_id}")
-```
-
-2. Then the model deployment is triggered via the Cloudera API:
+Technical monitoring focuses on the operational health of deployed models, especially those running as REST API endpoints. By tracking metrics like request rates, failures, response times, CPU, and memory usage, you can quickly identify and resolve infrastructure issues before they impact users. The notebook [1_technical_metrics_create_traffic.ipynb](./1_technical_metrics_create_traffic.ipynb) demonstrates how to simulate load and monitor these metrics in practice.
 
 ```python
-import cmlapi
+from cml.models_v1 import call_model
 
-# Set up client
-workspace_domain = os.getenv("CDSW_DOMAIN")
-cml_client = cmlapi.default_client(url=f"https://{workspace_domain}")
-
-CreateModelRequest = {
-    "project_id": os.getenv("CDSW_PROJECT_ID"), 
-    "name" : MODEL_NAME,
-    "description": f"Production model deployment for model name: {MODEL_NAME}",
-    "registered_model_id": model_id
-}
-
-model_api_response = cml_client.create_model(CreateModelRequest, os.getenv("CDSW_PROJECT_ID"))
-
-...
-```
-
-## Problem: Lack of Visibility into Model Behavior in Production
-
-Once a model is deployed, not knowing how it is performing in real-world conditions can lead to performance degradation, undetected failures, and poor decision-making. Without proper monitoring, issues may go unnoticed until they start impacting users or business processes.
-
-Key Challenges
-- Performance Monitoring: How do we track if the model is making accurate predictions over time?
-- Data & Concept Drift: Is the input data distribution changing compared to what the model was trained on?
-- Technical Scalability: Can the model handle increasing requests without latency or failures?
-
-## Solution #1: Technical Monitoring
-
-To simulate load, the Notebook [1_ops_simulation.ipynb](./monitoring/1_ops_simulation.ipynb) creates synthetic data and API calls to the model endpoint.
-
-```python
 for sample in synthetic_sample:
     input_sample = {"inputs": [sample.tolist()]}
-    cdsw.call_model(model_access_key=MODEL_ACCESS_KEY, ipt=input_sample)
+    call_model(model_access_key=MODEL_ACCESS_KEY, ipt=input_sample)
 ```
 
-Technical Metrics on Cloudera Machine Learning provide insights into the operational aspects of deployed models, specifically those running as REST API endpoints. These metrics help determine if models are appropriately resourced and functioning correctly.
+After a few minutes, the Model Deployment Monitoring UI should show the load.
 
-Key Features:
-- **Scope: Applicable exclusively to models deployed as REST API endpoints.**
-- Metrics Tracked:
-- Requests per Second
-- Total Number of Requests
-- Number of Failed Requests
-- Model Response Time
-- CPU Usage across all Model Replicas
-- Memory Usage across all Model Replicas
-- Model Request and Response Sizes
+![technical monitoring](../images/tech-monitoring.png)
 
-Documentation: https://docs.cloudera.com/machine-learning/1.5.3/models/topics/ml-model-tech-metrics.html
+Documentation: <https://docs.cloudera.com/machine-learning/cloud/models/topics/ml-model-tech-metrics.html>
 
-## Solution #2: Prediction Monitoring with Model Metrics
+## Best Practice #2: Prediction Monitoring with Model Metrics
 
 To answer questions such as data & concept drift and to add custom business logic to monitoring workflows, Model Metrics offer a customizable approach to monitor both REST API endpoints and batch inference processes. By integrating custom code, users can track specific performance indicators tailored to their models.
 
-The notebook [2_model_metrics.ipynb](./monitoring/2_model_metrics.ipynb) shows a full example how to make use of Model Metrics to track predictions along with inputs and a delayed ground truth. The notebook makes use of the decorated predict function defined in the [2_predict_with_metrics.py](./monitoring/2_predict_with_metrics.py) module.
+### Setup Metrics Store and Prediction Function
+
+As long as Model Metrics are enabled for the Machine Learning Workbench, Cloudera deploys an embedded Postgres Database to store Model Metrics related data. See also <https://docs.cloudera.com/machine-learning/cloud/models/topics/ml-enabling-model-metrics.html>. To make use of the metrics store, decorate your prediction function with the Cloudera Model Metrics decorator. The notebook [2a_predict_with_metrics.ipynb](2a_predict_with_metrics.ipynb) shows a full example how to set up a decorated prediction function, based on the example model from the previous labs.
 
 ```python
 import cml.metrics_v1 as metrics
 import cml.models_v1 as models
 
+...
+# Load the model from mlflow
+model = mlflow.pyfunc.load_model(...)
+
+# Set up model metrics with decorator
 @models.cml_model(metrics=True)
 def predict(args):
-    # Track the input.
-    metrics.track_metric("input", args)
+    metrics.track_metric("input", args) # Track the input with every inference
     result = model.predict(args)
-    # Track the output.
-    metrics.track_metric("output",result)
+    metrics.track_metric("output",result) # Track the output with every inference
     return result
 ```
 
-The ground truth is often available after predictions are made and served to end users/applications. By tracking ground truth after and correlating them with predictions, model and prediction quality can be monitored over time to account for concepts like data & concept drift.
+The returned predictions are enhanced by Model Metrics details, i.e. `model_deployment_crn` and `uuid` that can later be used to retrieve and analyse the tracked data:
 
 ```python
-# Track the true values alongside the corresponding predictions
-# with track_delayed_metrics function
-for i in range(len(ground_truth_array)):
-    ground_truth = ground_truth_array[i]
-    metrics.track_delayed_metrics({"actual_result": str(ground_truth)}, uuids[i], dev=True)
+...
+# invoke the decorated predict function
+prediction = predict(example_input)
+print(prediction)
+
+>>> {'prediction': array([0]),
+ 'model_deployment_crn': 'crn:cdp:ml:::workspace:dev/model-deployment',
+ 'uuid': '5f94cb41-eb5b-4b8b-a750-67874f7d4aad'}
 ```
 
-Model Metrics key features:
-- **Scope: Applicable to both REST API endpoints and batch inference models.**
-- Customization: Allows tracking of user-defined metrics relevant to model performance and business objectives.
-- Storage: Metrics are stored in a scalable metrics store, either managed by CML or an external Postgres database.
+>[!Note] Model Metrics with Deployments from Registry
+>
+> With the current Workbench version `2.0.50-b52`, model deployments from registry are always done with an (auto-generated) decorated predict_with_metrics function. This allows any direct deployments from the registry to be used with the Model Metrics feature, unless the Workbench has Model Metrics feature disabled.
 
-Model Metrics implementing custom metrics tracking:
-- For REST API Endpoints: Incorporate custom code within the model’s prediction function to log desired metrics during each API call.
-- For Batch Inference: Embed metric tracking code within the batch processing scripts to log performance indicators after each batch run.
+### Monitor Drift and Prediction Quality with Delayed Metrics
 
-To summarize, by leveraging Model Metrics, data scientists and engineers can gain deeper insights into model behavior, facilitating proactive maintenance and optimization.
+The notebook [2b_use_model_metrics.ipynb](2b_use_model_metrics.ipynb) shows a full example how to make use of Model Metrics to monitor prediction quality and data drift. This is done by tracking inputs, predictions and a delayed ground truth. The ground truth is often available after predictions are made and served to end users/applications.
 
-Documentation: https://docs.cloudera.com/machine-learning/1.5.3/model-metrics/topics/ml-enabling-model-metrics.html
+Note that the notebook follows a simplified example where the uuid are assumed to be known at the time when ground truth becomes available. In a real life scenario, this may not be the case. Ground truth may become available but the uuid of the associated prediction may have to be retrieved, e.g. by using a timestamp:
 
-## Further Reading: CI/CD with Cloudera Machine Learning APIs and GitLab
+```
+t0 -- model is invoked with query
+    --> prediction generated with uuid "5f94cb41-eb5b-4b8b-a750-67874f7d4aad"
+    --> uuid and timestamp added to metrics store (timestamp=t0, uuid=...)
 
-By leveraging GitLab’s CI/CD pipelines in conjunction with Cloudera APIs, teams can automate the processes of model training, testing, deployment, and monitoring. This integration ensures that models are consistently updated and deployed without manual intervention, promoting a robust MLOps culture.
+t1 -- actual answer for query at t0 becomes available
+    --> uuid retrieved with timestamp read_metrics(timestamp=t0, ...) 
+    --> returned uuid "5f94cb41-eb5b-4b8b-a750-67874f7d4aad"
+    --> ground truth written to metric store with uuid
+```
 
-Example GitLab pipeline utilizing Cloudera APIs: https://gitlab.com/vish3004/end-to-end-devops-demo
+Example workflow for retrieving prediction uuid via timestamp:
+
+```python
+...
+# Ground truth with associated timestamp becomes available
+ground_truth_start_ts = 1739926103995
+ground_truth_end_ts = 1739926103996
+ground_truth = "1"
+
+# metrics store data array example:
+# [{'modelDeploymentCrn': 'crn:cdp:ml:::workspace:dev/model-deployment',
+#   'modelBuildCrn': 'crn:cdp:ml:::workspace:dev/model-build',
+#   'modelCrn': 'crn:cdp:ml:::workspace:dev/model-deployment',
+#   'startTimeStampMs': 1739926103995,
+#   'endTimeStampMs': 1739926103996,
+#   'predictionUuid': '3f5bcd30-e017-45ac-b20e-02f01ca5c8e3',
+#   'metrics': {'input': [4.6, 3.6, 1.0, 0.2], 'output': '0'}}, ...]
+data = metrics.read_metrics(
+    model_deployment_crn=model_deployment_crn,
+    start_timestamp_ms=ground_truth_start_ts,
+    end_timestamp_ms=ground_truth_end_ts
+)["metrics"][0]["predictionUuid"]
+
+# Track the true value along with corresponding prediction using the uuid
+metrics.track_delayed_metrics(
+    {"actual_result": str(ground_truth)},
+    uuid, dev=True
+)
+```
+
+The metrics store will now contain the ground truth as well:
+
+```
+[{'modelDeploymentCrn': 'crn:cdp:ml:::workspace:dev/model-deployment',
+  'modelBuildCrn': 'crn:cdp:ml:::workspace:dev/model-build',
+  'modelCrn': 'crn:cdp:ml:::workspace:dev/model-deployment',
+  'startTimeStampMs': 1739926103995,
+  'endTimeStampMs': 1739926103996,
+  'predictionUuid': '3f5bcd30-e017-45ac-b20e-02f01ca5c8e3',
+  'metrics': {'input': [4.6, 3.6, 1.0, 0.2], 'output': '0', 'actual_result': '1'}}, ...]
+```
+
+See also <https://docs.cloudera.com/machine-learning/cloud/models/topics/ml-model-metrics.html>.
+
+## Summary
+
+Monitoring is a critical component of the MLOps pipeline that ensures models remain reliable and performant in production. This lab covered two key aspects of monitoring:
+
+- Technical monitoring for infrastructure health and performance
+- Prediction monitoring with model metrics for tracking model quality and drift
