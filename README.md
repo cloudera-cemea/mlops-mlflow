@@ -20,7 +20,7 @@ The workshop is divided into three labs:
 2. **Model Registry and Deployments**: Understand how MLflow's Model Registry helps with managing and deploying models.
 3. **Deployment and Monitoring**: Implement deployment and monitoring workflows using both technical and custom model metrics.
 
-Each directory contains code examples, notebooks and optional exercises for diving deeper into the individual topics.
+Each directory contains code examples and notebooks for diving deeper into the individual topics.
 
 ```text
 .

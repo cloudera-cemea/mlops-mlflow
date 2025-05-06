@@ -30,7 +30,9 @@ This lab will teach you how to register models, store them in the Model Registry
 
 ### Why Model Registry?
 
-When collaborating on machine learning projects, it's easy to lose track of which model is the "latest" or "best." You might end up with `model_v1.pkl`, `model_v2.pkl`, and `model_latest.pkl` files scattered in different folders, with little to no documentation on origin and differences between those files.
+When collaborating on machine learning projects, it's easy to lose track of which model is the "latest" or "best." You might end up with `model_v1.pkl`, `model_v2.pkl`, and `model_latest.pkl` files scattered in different folders, with little to no documentation on origin and differences between those files. Model Registry is the next logical step in the MLOps pipeline:
+
+    experiments → model registry
 
 > [!Tip] Benefits
 >
@@ -182,8 +184,9 @@ Cloudera Machine Learning automatically handles containerization, scaling, and m
 
 > [!Tip] Benefits
 >
-> - ✅ monitoring, scaling, standardizing, security
-> ...
+> - ✅ Standardized deployments as REST APIs
+> - ✅ Built-in security with secret key authentication and Cloudera governance
+> - ✅ Built-in monitoring capabilities (see lab 3 for more details)
 
 ### Best Practice 1: Model Deployments from Model Registry
 
