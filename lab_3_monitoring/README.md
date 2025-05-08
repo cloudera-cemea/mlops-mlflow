@@ -96,16 +96,53 @@ print(prediction)
 
 The notebook [2b_use_model_metrics_online.ipynb](2b_use_model_metrics_online.ipynb) shows a full example how to make use of Model Metrics to monitor prediction quality and data drift. This is done by tracking inputs, predictions and a delayed ground truth. The ground truth is often available after predictions are made and served to end users/applications.
 
-```
-Step 1: Model makes a prediction
-- Input data comes in
-- Model makes a prediction
-- System records this with a unique ID (UUID)
+Below is an example of how to monitor drift by tracking a delayed ground truth:
 
-Step 2: Later, when you know the actual answer
-- You can look up the original prediction using the timestamp
-- You can then compare the prediction with the actual answer
-- This helps you track if the model is drifting (making worse predictions)
+```python
+# 1. First, make a prediction and track it
+@models.cml_model(metrics=True)
+def predict(args):
+    metrics.track_metric("input", args)
+    result = model.predict(args)
+    metrics.track_metric("output", result)
+    return result
+
+# 2. Later, when you know the actual result, track it
+def track_ground_truth(prediction_timestamp, actual_result):
+    # Find the prediction made at this timestamp
+    data = metrics.read_metrics(
+        model_deployment_crn=model_deployment_crn,
+        start_timestamp_ms=prediction_timestamp,
+        end_timestamp_ms=prediction_timestamp + 1000  # 1 second window
+    )
+
+    # Get the prediction UUID
+    prediction_uuid = data["metrics"][0]["predictionUuid"]
+
+    # Track the actual result
+    metrics.track_delayed_metrics(
+        {"actual_result": str(actual_result)},
+        prediction_uuid
+    )
+
+# 3. Analyze drift over time
+def analyze_drift(start_date, end_date):
+    # Get all predictions and their actual results
+    data = metrics.read_metrics(
+        model_deployment_crn=model_deployment_crn,
+        start_timestamp_ms=start_date,
+        end_timestamp_ms=end_date
+    )
+
+    # Calculate accuracy over time
+    accuracies = []
+    for entry in data["metrics"]:
+        if "actual_result" in entry["metrics"]:
+            prediction = entry["metrics"]["output"]
+            actual = entry["metrics"]["actual_result"]
+            accuracies.append(prediction == actual)
+
+    return accuracies
 ```
 
 > [!Tip] Understanding Drift Monitoring
