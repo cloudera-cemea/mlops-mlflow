@@ -1,0 +1,23 @@
+name: MLOps MLflow workshop
+short_summary: MLOps MLflow workshop
+description: MLOps MLflow workshop
+author: mengelhardt@cloudera.com
+date: "2025-05-07"
+specification_version: "0.1"
+prototype_version: "1.0"
+
+runtimes:
+  - editor: JupyterLab
+    kernel: Python 3.11
+    edition: Standard
+    version: "2025.01"
+
+tasks:
+
+  - type: run_session
+    name: Install workshop dependencies
+    code: |
+      !pip install -r requirements.txt
+    short_summary: Install workshop dependencies.
+    cpu: 2
+    memory: 4

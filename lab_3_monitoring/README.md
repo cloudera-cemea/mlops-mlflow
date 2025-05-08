@@ -20,8 +20,8 @@ Labs 1 and 2 have already covered Experiment Tracking, Model Registry and Model 
   - [Why Monitoring?](#why-monitoring)
   - [Best Practice #1: Technical Monitoring](#best-practice-1-technical-monitoring)
   - [Best Practice #2: Prediction Monitoring with Model Metrics](#best-practice-2-prediction-monitoring-with-model-metrics)
-    - [Setup Metrics Store and Prediction Function](#setup-metrics-store-and-prediction-function)
-    - [Monitor Drift and Prediction Quality with Delayed Metrics](#monitor-drift-and-prediction-quality-with-delayed-metrics)
+    - [Track Predictions and Custom Metrics Locally](#track-predictions-and-custom-metrics-locally)
+    - [Use Model Metrics to Monitor Drift for a Deployed Model](#use-model-metrics-to-monitor-drift-for-a-deployed-model)
   - [Summary](#summary)
 
 ## Why Monitoring?
@@ -30,7 +30,9 @@ Monitoring is essential for maintaining model performance and reliability in pro
 
 ## Best Practice #1: Technical Monitoring
 
-Technical monitoring focuses on the operational health of deployed models, especially those running as REST API endpoints. By tracking metrics like request rates, failures, response times, CPU, and memory usage, you can quickly identify and resolve infrastructure issues before they impact users. The notebook [1_technical_metrics_create_traffic.ipynb](./1_technical_metrics_create_traffic.ipynb) demonstrates how to simulate load and monitor these metrics in practice.
+Technical monitoring focuses on the operational health of deployed models, especially those running as REST API endpoints. By tracking metrics like request rates, failures, response times, CPU, and memory usage, you can quickly identify and resolve infrastructure issues before they impact users.
+
+Using the model deployed in the previous lab, the notebook [1_technical_metrics_create_traffic.ipynb](./1_technical_metrics_create_traffic.ipynb) demonstrates how to simulate load and monitor these metrics in practice.
 
 ```python
 from cml.models_v1 import call_model
@@ -50,9 +52,15 @@ Documentation: <https://docs.cloudera.com/machine-learning/cloud/models/topics/m
 
 To answer questions such as data & concept drift and to add custom business logic to monitoring workflows, Model Metrics offer a customizable approach to monitor both REST API endpoints and batch inference processes. By integrating custom code, users can track specific performance indicators tailored to their models.
 
-### Setup Metrics Store and Prediction Function
+### Track Predictions and Custom Metrics Locally
 
-As long as Model Metrics are enabled for the Machine Learning Workbench, Cloudera deploys an embedded Postgres Database to store Model Metrics related data. See also <https://docs.cloudera.com/machine-learning/cloud/models/topics/ml-enabling-model-metrics.html>. To make use of the metrics store, decorate your prediction function with the Cloudera Model Metrics decorator. The notebook [2a_predict_with_metrics.ipynb](2a_predict_with_metrics.ipynb) shows a full example how to set up a decorated prediction function, based on the example model from the previous labs.
+As long as Model Metrics are enabled for the Machine Learning Workbench, Cloudera deploys an embedded Postgres Database to store Model Metrics related data. See also <https://docs.cloudera.com/machine-learning/cloud/models/topics/ml-enabling-model-metrics.html>. To make use of the metrics store, decorate your prediction function with the Cloudera Model Metrics decorator.
+
+>[!Note] Model Metrics with Deployments from Registry
+>
+> With the current Workbench version `2.0.50-b52`, model deployments from registry are always done with an (auto-generated) decorated predict_with_metrics function. This allows any direct deployments from the registry to be used with the Model Metrics feature, unless the Workbench has Model Metrics feature disabled.
+
+The notebook [2a_predict_with_metrics_locally.ipynb](2a_predict_with_metrics_locally.ipynb) shows a full example how to set up a decorated prediction function and test it locally, based on the example model from the previous labs:
 
 ```python
 import cml.metrics_v1 as metrics
@@ -71,7 +79,7 @@ def predict(args):
     return result
 ```
 
-The returned predictions are enhanced by Model Metrics details, i.e. `model_deployment_crn` and `uuid` that can later be used to retrieve and analyse the tracked data:
+The predictions and metrics defined via  `metrics.track_metrics(...)` are now logged to the Metrics Store along with metadata `model_deployment_crn` and `uuid` that can later be used to retrieve and analyse the tracked data:
 
 ```python
 ...
@@ -84,70 +92,33 @@ print(prediction)
  'uuid': '5f94cb41-eb5b-4b8b-a750-67874f7d4aad'}
 ```
 
->[!Note] Model Metrics with Deployments from Registry
+### Use Model Metrics to Monitor Drift for a Deployed Model
+
+The notebook [2b_use_model_metrics_online.ipynb](2b_use_model_metrics_online.ipynb) shows a full example how to make use of Model Metrics to monitor prediction quality and data drift. This is done by tracking inputs, predictions and a delayed ground truth. The ground truth is often available after predictions are made and served to end users/applications.
+
+```
+Step 1: Model makes a prediction
+- Input data comes in
+- Model makes a prediction
+- System records this with a unique ID (UUID)
+
+Step 2: Later, when you know the actual answer
+- You can look up the original prediction using the timestamp
+- You can then compare the prediction with the actual answer
+- This helps you track if the model is drifting (making worse predictions)
+```
+
+> [!Tip] Understanding Drift Monitoring
 >
-> With the current Workbench version `2.0.50-b52`, model deployments from registry are always done with an (auto-generated) decorated predict_with_metrics function. This allows any direct deployments from the registry to be used with the Model Metrics feature, unless the Workbench has Model Metrics feature disabled.
-
-### Monitor Drift and Prediction Quality with Delayed Metrics
-
-The notebook [2b_use_model_metrics.ipynb](2b_use_model_metrics.ipynb) shows a full example how to make use of Model Metrics to monitor prediction quality and data drift. This is done by tracking inputs, predictions and a delayed ground truth. The ground truth is often available after predictions are made and served to end users/applications.
-
-Note that the notebook follows a simplified example where the uuid are assumed to be known at the time when ground truth becomes available. In a real life scenario, this may not be the case. Ground truth may become available but the uuid of the associated prediction may have to be retrieved, e.g. by using a timestamp:
-
-```
-t0 -- model is invoked with query
-    --> prediction generated with uuid "5f94cb41-eb5b-4b8b-a750-67874f7d4aad"
-    --> uuid and timestamp added to metrics store (timestamp=t0, uuid=...)
-
-t1 -- actual answer for query at t0 becomes available
-    --> uuid retrieved with timestamp read_metrics(timestamp=t0, ...) 
-    --> returned uuid "5f94cb41-eb5b-4b8b-a750-67874f7d4aad"
-    --> ground truth written to metric store with uuid
-```
-
-Example workflow for retrieving prediction uuid via timestamp:
-
-```python
-...
-# Ground truth with associated timestamp becomes available
-ground_truth_start_ts = 1739926103995
-ground_truth_end_ts = 1739926103996
-ground_truth = "1"
-
-# metrics store data array example:
-# [{'modelDeploymentCrn': 'crn:cdp:ml:::workspace:dev/model-deployment',
-#   'modelBuildCrn': 'crn:cdp:ml:::workspace:dev/model-build',
-#   'modelCrn': 'crn:cdp:ml:::workspace:dev/model-deployment',
-#   'startTimeStampMs': 1739926103995,
-#   'endTimeStampMs': 1739926103996,
-#   'predictionUuid': '3f5bcd30-e017-45ac-b20e-02f01ca5c8e3',
-#   'metrics': {'input': [4.6, 3.6, 1.0, 0.2], 'output': '0'}}, ...]
-data = metrics.read_metrics(
-    model_deployment_crn=model_deployment_crn,
-    start_timestamp_ms=ground_truth_start_ts,
-    end_timestamp_ms=ground_truth_end_ts
-)["metrics"][0]["predictionUuid"]
-
-# Track the true value along with corresponding prediction using the uuid
-metrics.track_delayed_metrics(
-    {"actual_result": str(ground_truth)},
-    uuid, dev=True
-)
-```
-
-The metrics store will now contain the ground truth as well:
-
-```
-[{'modelDeploymentCrn': 'crn:cdp:ml:::workspace:dev/model-deployment',
-  'modelBuildCrn': 'crn:cdp:ml:::workspace:dev/model-build',
-  'modelCrn': 'crn:cdp:ml:::workspace:dev/model-deployment',
-  'startTimeStampMs': 1739926103995,
-  'endTimeStampMs': 1739926103996,
-  'predictionUuid': '3f5bcd30-e017-45ac-b20e-02f01ca5c8e3',
-  'metrics': {'input': [4.6, 3.6, 1.0, 0.2], 'output': '0', 'actual_result': '1'}}, ...]
-```
-
-See also <https://docs.cloudera.com/machine-learning/cloud/models/topics/ml-model-metrics.html>.
+> Drift monitoring helps you detect when your model's performance starts to degrade. There are two main types of drift:
+>
+> **Data Drift**: When the distribution of input data changes over time
+>   - Example: If your model was trained on data from 2020, but now receives data from 2024
+>   - This can happen due to changing user behavior, market conditions, or other external factors
+>
+> **Concept Drift**: When the relationship between inputs and outputs changes
+>   - Example: A model predicting customer churn might need to adapt to new customer behavior patterns
+>   - This can happen when the underlying patterns in your data change
 
 ## Summary
 
