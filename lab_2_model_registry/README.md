@@ -34,7 +34,8 @@ When collaborating on machine learning projects, it's easy to lose track of whic
 
     experiments → model registry
 
-> [!Tip] Benefits
+> [!Tip]
+> Benefits:
 >
 > - ✅ **Centralized Storage**: A single source of truth for all models in your project.  
 > - ✅ **Automatic Versioning**: Each new model or model update is assigned a unique version number.  
@@ -53,7 +54,8 @@ In this scenario, a model is trained and pushed the model to the registry manual
 
 ![registry user interface](/images/registry-user-interface.png)
 
-> [!Tip] Benefits
+> [!Tip]
+> Benefits:
 >
 > - ✅ You can now see all its versions (including the one just registered), details like creation time, run ID, and metadata logged by MLflow.
 > - ✅ Other team members can also view this registry entry, download artifacts, or further update the model version as needed.
@@ -182,7 +184,8 @@ The Model Registry is naturally complemented by Model Deployments, which allow r
 
 Cloudera Machine Learning automatically handles containerization, scaling, and monitoring, making it easy to integrate models into real-time applications and business workflows.
 
-> [!Tip] Benefits
+> [!Tip]
+> Benefits:
 >
 > - ✅ Standardized deployments as REST APIs
 > - ✅ Built-in security with secret key authentication and Cloudera governance

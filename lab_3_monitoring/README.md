@@ -6,7 +6,8 @@ Labs 1 and 2 have already covered Experiment Tracking, Model Registry and Model 
 
     experiments → model registry → deployment → monitoring
 
-> [!Tip] Once a model is in production, continuous monitoring is crucial to ensure:
+> [!Tip]
+> Once a model is in production, continuous monitoring is crucial to ensure:
 >
 > - ✅ Infrastructure scales effectively (low latency, stable request handling).
 > - ✅ Performance remains high (accuracy, prediction quality).
@@ -56,7 +57,8 @@ To answer questions such as data & concept drift and to add custom business logi
 
 As long as Model Metrics are enabled for the Machine Learning Workbench, Cloudera deploys an embedded Postgres Database to store Model Metrics related data. See also <https://docs.cloudera.com/machine-learning/cloud/models/topics/ml-enabling-model-metrics.html>. To make use of the metrics store, decorate your prediction function with the Cloudera Model Metrics decorator.
 
->[!Note] Model Metrics with Deployments from Registry
+>[!Note]
+> Note on Model Metrics with Deployments from Registry:
 >
 > With the current Workbench version `2.0.50-b52`, model deployments from registry are always done with an (auto-generated) decorated predict_with_metrics function. This allows any direct deployments from the registry to be used with the Model Metrics feature, unless the Workbench has Model Metrics feature disabled.
 
@@ -145,7 +147,8 @@ def analyze_drift(start_date, end_date):
     return accuracies
 ```
 
-> [!Tip] Understanding Drift Monitoring
+> [!Tip]
+> Understanding Drift Monitoring:
 >
 > Drift monitoring helps you detect when your model's performance starts to degrade. There are two main types of drift:
 >

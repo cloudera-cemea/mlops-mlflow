@@ -55,7 +55,8 @@ accuracy = model.score(X_test, y_test)
 print(f"Model Accuracy: {accuracy}")
 ```
 
-> [!Caution] Issues
+> [!Caution]
+> There are some issues with this:
 >
 > - No record of hyperparameters or metrics.
 > - Cannot compare multiple runs.
@@ -90,7 +91,8 @@ with mlflow.start_run():
     mlflow.sklearn.log_model(model, "logistic_regression")
 ```
 
-> [!Tip] Benefits
+> [!Tip]
+> Benefits:
 >
 > - Experiment results are logged and stored.
 > - Allows comparison across multiple runs.
